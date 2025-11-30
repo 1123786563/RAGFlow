@@ -2,7 +2,7 @@ services:
   es01:
     image: elasticsearch:${STACK_VERSION}
     volumes:
-      - esdata01:/usr/share/elasticsearch/data
+      - ./esdata01:/usr/share/elasticsearch/data
     ports:
       - ${ES_PORT}:9200
     env_file: .env
@@ -174,7 +174,7 @@ services:
       - MINIO_ROOT_USER=${MINIO_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
     volumes:
-      - minio_data:/data
+      - ./minio_data:/data
     networks:
       - ragflow
     restart: on-failure
@@ -192,7 +192,7 @@ services:
     ports:
       - ${REDIS_PORT}:6379
     volumes:
-      - redis_data:/data
+      - ./redis_data:/data
     networks:
       - ragflow
     restart: on-failure

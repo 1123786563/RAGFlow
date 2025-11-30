@@ -34,8 +34,8 @@ module.exports = {
         border: 'var(--border-default)',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        background: 'var(--background)',
-        foreground: 'var(--colors-text-neutral-strong)',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         buttonBlueText: 'var(--button-blue-text)',
 
         'colors-outline-sentiment-primary':
@@ -124,8 +124,8 @@ module.exports = {
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: 'var(--background-inverse-strong)',
-          foreground: 'var(--background-inverse-strong-foreground)',
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
@@ -144,8 +144,8 @@ module.exports = {
           foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
-          DEFAULT: 'var(--background-inverse-standard)',
-          foreground: 'var(--background-inverse-standard-foreground)',
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
         backgroundCoreWeak: {
           DEFAULT: 'var(--background-core-weak)',

@@ -43,6 +43,11 @@ const AdminNavigationLayout = () => {
         name: t('admin.userManagement'),
         icon: <LucideUserCog className="size-[1em]" />,
       },
+      {
+        path: Routes.AdminDepartments,
+        name: t('admin.departments'),
+        icon: <LucideUserCog className="size-[1em]" />,
+      },
       ...(IS_ENTERPRISE
         ? [
             {

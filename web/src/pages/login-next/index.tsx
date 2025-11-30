@@ -98,8 +98,8 @@ const Login = () => {
   const form = useForm({
     defaultValues: {
       nickname: '',
-      email: '',
-      password: '',
+      email: '1123786563@qq.com',
+      password: '123456',
       confirmPassword: '',
       remember: false,
     },

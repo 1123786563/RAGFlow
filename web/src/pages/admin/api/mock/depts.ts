@@ -1,0 +1,68 @@
+import { DepartmentWithQuota } from '../../types/index';
+
+export const DEPTS: DepartmentWithQuota[] = [
+  {
+    id: '1',
+    name: '总部 (Headquarters)',
+    manager: 'CEO',
+    memberCount: 5,
+    location: 'A栋 10楼',
+    tokenLimit: 'Unlimited',
+    storageLimit: '1 TB',
+    usage: 10,
+    children: [
+      {
+        id: '1-1',
+        name: 'IT技术中心',
+        manager: 'Alice Chen',
+        memberCount: 15,
+        location: 'A栋 3楼',
+        tokenLimit: 'Unlimited',
+        storageLimit: '500 GB',
+        usage: 45,
+        children: [
+          {
+            id: '1-1-1',
+            name: '研发一部 (R&D 1)',
+            manager: 'David',
+            memberCount: 8,
+            location: 'A栋 301',
+            tokenLimit: '1M/Mon',
+            storageLimit: '200 GB',
+            usage: 60,
+          },
+          {
+            id: '1-1-2',
+            name: '运维部 (Ops)',
+            manager: 'Eve',
+            memberCount: 4,
+            location: 'A栋 302',
+            tokenLimit: '500k/Mon',
+            storageLimit: '300 GB',
+            usage: 20,
+          },
+        ],
+      },
+      {
+        id: '1-2',
+        name: '市场中心',
+        manager: 'Sarah Lee',
+        memberCount: 8,
+        location: 'B栋 2楼',
+        tokenLimit: '1M / 月',
+        storageLimit: '50 GB',
+        usage: 82,
+      },
+      {
+        id: '1-3',
+        name: '销售部',
+        manager: 'Tom Wilson',
+        memberCount: 24,
+        location: 'B栋 1楼',
+        tokenLimit: '500K / 月',
+        storageLimit: '20 GB',
+        usage: 15,
+      },
+    ],
+  },
+];

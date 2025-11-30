@@ -27,7 +27,10 @@ from .modules.document import Document
 from .modules.chunk import Chunk
 from .modules.agent import Agent
 
-__version__ = importlib.metadata.version("ragflow_sdk")
+try:
+    __version__ = importlib.metadata.version("ragflow_sdk")
+except importlib.metadata.PackageNotFoundError:
+    __version__ = "0.1.0-dev"
 
 __all__ = [
     "RAGFlow",

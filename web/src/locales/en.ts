@@ -2082,6 +2082,7 @@ Important structured information may include: names, dates, locations, events, k
 
       serviceStatus: 'Service status',
       userManagement: 'User management',
+      departments: 'Departments',
       registrationWhitelist: 'Registration whitelist',
       roles: 'Roles',
       monitoring: 'Monitoring',

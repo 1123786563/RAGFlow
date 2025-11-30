@@ -87,11 +87,17 @@ class MySQLConfig(MetaConfig):
 
 
 class PostgresConfig(MetaConfig):
+    username: str
+    password: str
 
     def to_dict(self) -> dict[str, Any]:
         result = super().to_dict()
         if 'extra' not in result:
             result['extra'] = dict()
+        extra_dict = result['extra'].copy()
+        extra_dict['username'] = self.username
+        extra_dict['password'] = self.password
+        result['extra'] = extra_dict
         return result
 
 
@@ -299,6 +305,16 @@ def load_configurations(config_path: str) -> list[BaseConfig]:
                                      service_type="meta_data", meta_type="mysql", detail_func_name="get_mysql_status")
                 configurations.append(config)
                 id_count += 1
+            case "postgres":
+                name: str = 'postgres'
+                host: str = v.get('host')
+                port: int = v.get('port')
+                username = v.get('user')
+                password = v.get('password')
+                config = PostgresConfig(id=id_count, name=name, host=host, port=port, username=username, password=password,
+                                     service_type="meta_data", meta_type="ragflow", detail_func_name="get_mysql_status")
+                configurations.append(config)
+                id_count += 1                
             case "admin":
                 pass
             case "task_executor":

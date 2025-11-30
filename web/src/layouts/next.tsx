@@ -1,11 +1,16 @@
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Outlet } from 'umi';
+import { AppSidebar } from './components/app-sidebar';
 import { Header } from './next-header';
 
 export default function NextLayout() {
   return (
-    <main className="h-full flex flex-col">
-      <Header />
-      <Outlet />
-    </main>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <Header />
+        <Outlet />
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -1,0 +1,45 @@
+import { Role } from '../../types/index';
+
+export const ROLES: Role[] = [
+  {
+    id: '1',
+    name: '超级管理员',
+    key: 'admin',
+    description: '拥有系统完全访问权限',
+    userCount: 3,
+    status: 'active',
+    permissions: [
+      '1',
+      '1-1',
+      '1-2',
+      '1-3',
+      '2',
+      '2-1',
+      '2-2',
+      '3',
+      '3-1',
+      '3-2',
+      '3-3',
+      '3-4',
+      '3-5',
+    ],
+  },
+  {
+    id: '2',
+    name: '内容编辑',
+    key: 'editor',
+    description: '可编辑知识库和聊天设置',
+    userCount: 12,
+    status: 'active',
+    permissions: ['1', '1-1', '1-2', '1-3', '2', '2-1'],
+  },
+  {
+    id: '3',
+    name: '普通访客',
+    key: 'viewer',
+    description: '仅只读访问权限',
+    userCount: 45,
+    status: 'active',
+    permissions: ['1', '1-1', '1-2'],
+  },
+];

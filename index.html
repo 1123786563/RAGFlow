@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAGFlow 聊天分享</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1400px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 24px 32px;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .iframe-wrapper {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 140px);
+      min-height: 600px;
+    }
+
+    .iframe-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+      }
+
+      .container {
+        border-radius: 0;
+        max-width: 100%;
+        height: 100vh;
+      }
+
+      .header {
+        padding: 16px 20px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+      }
+
+      .iframe-wrapper {
+        height: calc(100vh - 100px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>RAGFlow 聊天分享</h1>
+    </div>
+    <div class="iframe-wrapper">
+      <iframe
+        src="http://localhost:9222/next-chats/share?shared_id=08b1b84ccc7811f0ae0dacde48001122&from=chat&auth=PZpw41jhxGwiVkPw79t8MJ-FPxItVuIL&visible_avatar=1&locale=zh"
+        title="RAGFlow Chat"
+      ></iframe>
+    </div>
+  </div>
+</body>
+</html>

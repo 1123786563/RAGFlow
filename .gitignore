@@ -19,6 +19,9 @@ Cargo.lock
 *.pdb
 *.trie
 pg1_data/
+esdata01/
+minio_data/
+redis_data/
 .idea/
 .vscode/
 

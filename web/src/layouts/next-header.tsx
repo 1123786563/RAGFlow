@@ -8,29 +8,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Segmented, SegmentedValue } from '@/components/ui/segmented';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { LanguageList, LanguageMap, ThemeEnum } from '@/constants/common';
 import { useChangeLanguage } from '@/hooks/logic-hooks';
 import { useNavigatePage } from '@/hooks/logic-hooks/navigate-hooks';
-import { useNavigateWithFromState } from '@/hooks/route-hook';
 import { useFetchUserInfo } from '@/hooks/user-setting-hooks';
-import { Routes } from '@/routes';
 import { camelCase } from 'lodash';
-import {
-  ChevronDown,
-  CircleHelp,
-  Cpu,
-  File,
-  House,
-  Library,
-  MessageSquareText,
-  Moon,
-  Search,
-  Sun,
-} from 'lucide-react';
-import React, { useCallback, useMemo } from 'react';
+import { ChevronDown, CircleHelp, Moon, Sun } from 'lucide-react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation } from 'umi';
 import { BellButton } from './bell-button';
 
 const handleDocHelpCLick = () => {
@@ -39,8 +25,6 @@ const handleDocHelpCLick = () => {
 
 export function Header() {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
-  const navigate = useNavigateWithFromState();
   const { navigateToOldProfile } = useNavigatePage();
 
   const changeLanguage = useChangeLanguage();
@@ -63,67 +47,11 @@ export function Header() {
     setTheme(theme === ThemeEnum.Dark ? ThemeEnum.Light : ThemeEnum.Dark);
   }, [setTheme, theme]);
 
-  const tagsData = useMemo(
-    () => [
-      { path: Routes.Root, name: t('header.Root'), icon: House },
-      { path: Routes.Datasets, name: t('header.dataset'), icon: Library },
-      { path: Routes.Chats, name: t('header.chat'), icon: MessageSquareText },
-      { path: Routes.Searches, name: t('header.search'), icon: Search },
-      { path: Routes.Agents, name: t('header.flow'), icon: Cpu },
-      { path: Routes.Files, name: t('header.fileManager'), icon: File },
-    ],
-    [t],
-  );
-
-  const options = useMemo(() => {
-    return tagsData.map((tag) => {
-      const HeaderIcon = tag.icon;
-
-      return {
-        label:
-          tag.path === Routes.Root ? (
-            <HeaderIcon className="size-6"></HeaderIcon>
-          ) : (
-            <span>{tag.name}</span>
-          ),
-        value: tag.path,
-      };
-    });
-  }, [tagsData]);
-
-  // const currentPath = useMemo(() => {
-  //   return (
-  //     tagsData.find((x) => pathname.startsWith(x.path))?.path || Routes.Root
-  //   );
-  // }, [pathname, tagsData]);
-
-  const handleChange = (path: SegmentedValue) => {
-    navigate(path as Routes);
-  };
-
-  const handleLogoClick = useCallback(() => {
-    navigate(Routes.Root);
-  }, [navigate]);
-
   return (
-    <section className="py-5 px-10 flex justify-between items-center ">
+    <section className="py-4 px-6 flex justify-between items-center border-b">
       <div className="flex items-center gap-4">
-        <img
-          src={'/logo.svg'}
-          alt="logo"
-          className="size-10 mr-[12] cursor-pointer"
-          onClick={handleLogoClick}
-        />
+        <SidebarTrigger />
       </div>
-      <Segmented
-        rounded="xxxl"
-        sizeType="xl"
-        buttonSize="xl"
-        options={options}
-        value={pathname}
-        onChange={handleChange}
-        activeClassName="text-bg-base bg-metallic-gradient border-b-[#00BEB4] border-b-2"
-      ></Segmented>
       <div className="flex items-center gap-5 text-text-badge">
         <a
           target="_blank"
@@ -169,10 +97,6 @@ export function Header() {
             className="size-8 cursor-pointer"
             onClick={navigateToOldProfile}
           ></RAGFlowAvatar>
-          {/* Temporarily hidden */}
-          {/* <Badge className="h-5 w-8 absolute font-normal p-0 justify-center -right-8 -top-2 text-bg-base bg-gradient-to-l from-[#42D7E7] to-[#478AF5]">
-            Pro
-          </Badge> */}
         </div>
       </div>
     </section>

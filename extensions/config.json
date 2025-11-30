@@ -1,0 +1,61 @@
+{
+  "document_parsers": {
+    "enabled": true,
+    "custom_parsers": [],
+    "config": {
+      "default_parser": "auto",
+      "chunk_size": 1024,
+      "chunk_overlap": 50
+    }
+  },
+  "llm_providers": {
+    "enabled": true,
+    "custom_providers": [],
+    "config": {
+      "default_provider": "openai",
+      "timeout": 60,
+      "max_retries": 3
+    }
+  },
+  "embedding_models": {
+    "enabled": true,
+    "custom_models": [],
+    "config": {
+      "default_model": "text-embedding-ada-002",
+      "dimension": 1536,
+      "batch_size": 100
+    }
+  },
+  "agent_components": {
+    "enabled": true,
+    "custom_components": [],
+    "config": {
+      "max_execution_time": 300,
+      "max_memory_usage": "1GB"
+    }
+  },
+  "api_endpoints": {
+    "enabled": true,
+    "custom_endpoints": [],
+    "config": {
+      "rate_limit": 100,
+      "authentication_required": true
+    }
+  },
+  "data_sources": {
+    "enabled": true,
+    "custom_sources": [],
+    "config": {
+      "sync_interval": 3600,
+      "batch_size": 1000
+    }
+  },
+  "storage_adapters": {
+    "enabled": true,
+    "custom_adapters": [],
+    "config": {
+      "default_adapter": "local",
+      "backup_enabled": true
+    }
+  }
+}

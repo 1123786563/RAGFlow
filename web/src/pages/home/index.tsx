@@ -1,12 +1,12 @@
 import { Applications } from './applications';
-import { NextBanner } from './banner';
+import { Banner } from './banner';
 import { Datasets } from './datasets';
 
 const Home = () => {
   return (
-    <section>
-      <NextBanner></NextBanner>
-      <section className="h-[calc(100dvh-260px)] overflow-auto px-10">
+    <section className="px-8 pb-8">
+      <Banner></Banner>
+      <section className="h-[calc(100dvh-300px)] overflow-auto">
         <Datasets></Datasets>
         <Applications></Applications>
       </section>
