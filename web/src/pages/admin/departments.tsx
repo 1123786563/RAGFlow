@@ -4,15 +4,17 @@ import {
   ChevronRight,
   Edit,
   Plus,
+  Search,
   Trash2,
 } from 'lucide-react';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 import { DeptApi } from './api/index';
 import { DepartmentEditModal } from './components/department-edit-modal';
 import { DepartmentWithQuota } from './types/index';
 
-import Spotlight from '@/components/spotlight';
 import { TableEmpty } from '@/components/table-skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
@@ -33,17 +36,25 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-export const DepartmentsView: React.FC = () => {
+const DepartmentsView: React.FC = () => {
   const { t } = useTranslation();
 
   // State
-  const [departments, setDepartments] = useState<DepartmentWithQuota[]>(
-    DeptApi.list(),
-  );
-  const [expandedRowIds, setExpandedRowIds] = useState<Set<string>>(
-    new Set(['1', '1-1']),
-  );
+  const [departments, setDepartments] = useState<DepartmentWithQuota[]>([]);
+  const [expandedRowIds, setExpandedRowIds] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
+  const [parentId, setParentId] = useState<string | null>(null);
+
+  // Fetch initial data
+  React.useEffect(() => {
+    try {
+      const data = DeptApi.list();
+      setDepartments(data);
+    } catch (error) {
+      console.error('Failed to fetch departments:', error);
+      toast.error(t('departments.errors.fetchFailed'));
+    }
+  }, [t]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,14 +66,15 @@ export const DepartmentsView: React.FC = () => {
     null,
   );
 
-  // Get color based on usage percentage
+  // Get color based on usage percentage with boundary check
   const getUsageColor = useCallback((usage: number) => {
-    if (usage > 80) return 'bg-red-500';
-    if (usage > 60) return 'bg-orange-500';
+    const clampedUsage = Math.min(100, Math.max(0, usage));
+    if (clampedUsage > 80) return 'bg-red-500';
+    if (clampedUsage > 60) return 'bg-orange-500';
     return 'bg-brand-500';
   }, []);
 
-  // Helper: Recursive Filter for Search
+  // Helper: Recursive Filter for Search (no side effects)
   const filterDepartments = useCallback(
     (nodes: DepartmentWithQuota[], term: string): DepartmentWithQuota[] => {
       return nodes.reduce((acc: DepartmentWithQuota[], node) => {
@@ -75,15 +87,6 @@ export const DepartmentsView: React.FC = () => {
           : [];
 
         if (matches || filteredChildren.length > 0) {
-          // If searching, auto-expand parents
-          if (term && filteredChildren.length > 0) {
-            setExpandedRowIds((prev) => {
-              const next = new Set(prev);
-              next.add(node.id);
-              return next;
-            });
-          }
-
           acc.push({
             ...node,
             children: filteredChildren,
@@ -95,10 +98,35 @@ export const DepartmentsView: React.FC = () => {
     [],
   );
 
-  const visibleDepartments = useMemo(() => {
+  const filteredDepartments = useMemo(() => {
     if (!searchTerm) return departments;
     return filterDepartments(departments, searchTerm);
   }, [departments, searchTerm, filterDepartments]);
+
+  // Auto-expand matching parents
+  React.useEffect(() => {
+    if (!searchTerm) return;
+
+    const expandMatchingParents = (nodes: DepartmentWithQuota[]) => {
+      nodes.forEach((node) => {
+        if (node.children && node.children.length > 0) {
+          const hasMatchingChildren = node.children.some(
+            (child) =>
+              child.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              child.manager.toLowerCase().includes(searchTerm.toLowerCase()),
+          );
+          if (hasMatchingChildren) {
+            setExpandedRowIds((prev) => new Set(prev).add(node.id));
+            expandMatchingParents(node.children);
+          }
+        }
+      });
+    };
+
+    expandMatchingParents(filteredDepartments);
+  }, [searchTerm, filteredDepartments]);
+
+  const visibleDepartments = filteredDepartments;
 
   // Actions
   const toggleExpand = useCallback((id: string) => {
@@ -129,86 +157,102 @@ export const DepartmentsView: React.FC = () => {
   }, []);
 
   const confirmDelete = useCallback(() => {
-    if (deptToDelete) {
-      // Recursive delete function
-      const deleteNode = (
-        nodes: DepartmentWithQuota[],
-      ): DepartmentWithQuota[] => {
-        return nodes
-          .filter((node) => node.id !== deptToDelete.id)
-          .map((node) => ({
-            ...node,
-            children: node.children ? deleteNode(node.children) : [],
-          }));
-      };
-      setDepartments(deleteNode(departments));
-      setIsDeleteDialogOpen(false);
-      setDeptToDelete(null);
-    }
-  }, [deptToDelete, departments]);
-
-  const handleSave = useCallback(
-    (deptData: Partial<DepartmentWithQuota>, parentId: string | null) => {
-      if (editingDept) {
-        // Update existing
-        const updateNode = (
+    try {
+      if (deptToDelete) {
+        // Recursive delete function
+        const deleteNode = (
           nodes: DepartmentWithQuota[],
         ): DepartmentWithQuota[] => {
-          return nodes.map((node) => {
-            if (node.id === editingDept.id) {
-              return { ...node, ...deptData } as DepartmentWithQuota;
-            }
-            if (node.children) {
-              return { ...node, children: updateNode(node.children) };
-            }
-            return node;
-          });
+          return nodes
+            .filter((node) => node.id !== deptToDelete.id)
+            .map((node) => ({
+              ...node,
+              children: node.children ? deleteNode(node.children) : [],
+            }));
         };
-        setDepartments(updateNode(departments));
-      } else {
-        // Create new
-        const newDept: DepartmentWithQuota = {
-          id: Date.now().toString(),
-          name: deptData.name || t('departments.new.defaultName'),
-          manager: deptData.manager || '',
-          memberCount: 0,
-          location: deptData.location || '',
-          tokenLimit: deptData.tokenLimit || 'Unlimited',
-          storageLimit: deptData.storageLimit || '100 GB',
-          usage: 0,
-          children: [],
-        };
+        setDepartments(deleteNode(departments));
+        setIsDeleteDialogOpen(false);
+        setDeptToDelete(null);
+        toast.success(t('departments.success.delete'));
+      }
+    } catch (error) {
+      console.error('Failed to delete department:', error);
+      toast.error(t('departments.errors.deleteFailed'));
+    }
+  }, [deptToDelete, departments, t]);
 
-        if (!parentId) {
-          setDepartments([...departments, newDept]);
-        } else {
-          const appendNode = (
+  const handleSave = useCallback(
+    (deptData: Partial<DepartmentWithQuota>) => {
+      try {
+        if (editingDept) {
+          // Update existing
+          const updateNode = (
             nodes: DepartmentWithQuota[],
           ): DepartmentWithQuota[] => {
             return nodes.map((node) => {
-              if (node.id === parentId) {
-                return {
-                  ...node,
-                  children: [...(node.children || []), newDept],
-                };
+              if (node.id === editingDept.id) {
+                return { ...node, ...deptData } as DepartmentWithQuota;
               }
               if (node.children) {
-                return { ...node, children: appendNode(node.children) };
+                return { ...node, children: updateNode(node.children) };
               }
               return node;
             });
           };
-          setDepartments(appendNode(departments));
-          // Auto expand parent
-          setExpandedRowIds((prev) => new Set(prev).add(parentId));
+          setDepartments(updateNode(departments));
+          toast.success(t('departments.success.update'));
+        } else {
+          // Create new
+          const newDept: DepartmentWithQuota = {
+            id: uuidv4(),
+            name: deptData.name || t('departments.new.defaultName'),
+            manager: deptData.manager || '',
+            memberCount: 0,
+            location: deptData.location || '',
+            tokenLimit: deptData.tokenLimit || 'Unlimited',
+            storageLimit: deptData.storageLimit || '100 GB',
+            usage: 0,
+            children: [],
+          };
+
+          if (!parentId) {
+            setDepartments([...departments, newDept]);
+          } else {
+            const appendNode = (
+              nodes: DepartmentWithQuota[],
+            ): DepartmentWithQuota[] => {
+              return nodes.map((node) => {
+                if (node.id === parentId) {
+                  return {
+                    ...node,
+                    children: [...(node.children || []), newDept],
+                  };
+                }
+                if (node.children) {
+                  return { ...node, children: appendNode(node.children) };
+                }
+                return node;
+              });
+            };
+            setDepartments(appendNode(departments));
+            // Auto expand parent
+            setExpandedRowIds((prev) => new Set(prev).add(parentId));
+          }
+          toast.success(t('departments.success.create'));
         }
+      } catch (error) {
+        console.error('Failed to save department:', error);
+        toast.error(t('departments.errors.saveFailed'));
       }
     },
-    [editingDept, departments, t],
+    [editingDept, departments, parentId, t],
   );
 
   // Render Row Recursive
-  const renderRows = (nodes: DepartmentWithQuota[], depth: number = 0) => {
+  const renderRows = (
+    nodes: DepartmentWithQuota[],
+    depth: number = 0,
+  ): JSX.Element[] => {
     return nodes.flatMap((dept) => {
       const hasChildren = dept.children && dept.children.length > 0;
       const isExpanded = expandedRowIds.has(dept.id);
@@ -216,154 +260,176 @@ export const DepartmentsView: React.FC = () => {
       const row = (
         <TableRow
           key={dept.id}
-          className="hover:bg-slate-50 transition-colors group"
+          className="group/row hover:bg-accent/50 transition-colors border-b border-border"
         >
-          <TableCell className="font-medium">
+          <TableCell className="py-3">
             <div
-              className="flex items-center"
+              className="flex items-center gap-2"
               style={{ paddingLeft: `${depth * 24}px` }}
             >
               {hasChildren ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
                   onClick={() => toggleExpand(dept.id)}
-                  className="p-0.5 mr-2 h-6 w-6"
+                  className="p-0.5 hover:bg-accent rounded transition-colors"
                 >
                   {isExpanded ? (
-                    <ChevronDown size={14} />
+                    <ChevronDown size={16} className="text-muted-foreground" />
                   ) : (
-                    <ChevronRight size={14} />
+                    <ChevronRight size={16} className="text-muted-foreground" />
                   )}
-                </Button>
+                </button>
               ) : (
-                <span className="w-6 mr-2 inline-block"></span>
+                <span className="w-5 inline-block"></span>
               )}
-              <Building size={14} className="text-brand-500 mr-2 opacity-70" />
-              {dept.name}
+              <Building size={16} className="text-primary" />
+              <span className="font-medium text-foreground">{dept.name}</span>
             </div>
           </TableCell>
-          <TableCell>{dept.manager || '-'}</TableCell>
-          <TableCell>{dept.memberCount}</TableCell>
-          <TableCell className="font-mono bg-slate-50 rounded px-2 w-fit">
-            {dept.tokenLimit}
+          <TableCell className="py-3 text-muted-foreground">
+            {dept.manager || '-'}
           </TableCell>
-          <TableCell className="font-mono">{dept.storageLimit}</TableCell>
-          <TableCell>
-            <div className="w-24">
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-500">{dept.usage}%</span>
+          <TableCell className="py-3 text-muted-foreground">
+            {dept.memberCount}
+          </TableCell>
+          <TableCell className="py-3">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-secondary text-secondary-foreground text-sm font-mono">
+              {dept.tokenLimit}
+            </span>
+          </TableCell>
+          <TableCell className="py-3 text-muted-foreground font-mono text-sm">
+            {dept.storageLimit}
+          </TableCell>
+          <TableCell className="py-3">
+            <div className="w-28">
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="text-muted-foreground font-medium">
+                  {dept.usage}%
+                </span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-1.5">
+              <div className="w-full bg-secondary rounded-full h-2">
                 <div
-                  className={`h-1.5 rounded-full ${getUsageColor(dept.usage)}`}
-                  style={{ width: `${dept.usage}%` }}
+                  className={`h-2 rounded-full transition-all ${getUsageColor(dept.usage)}`}
+                  style={{
+                    width: `${Math.min(100, Math.max(0, dept.usage))}%`,
+                  }}
                 ></div>
               </div>
             </div>
           </TableCell>
-          <TableCell className="text-right">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setEditingDept(null); // Add mode
-                setIsModalOpen(true);
-                // Pre-select logic could be handled if we pass the parent ID to modal state
-                // For now, modal handles selection
-              }}
-              className="mr-2"
-              title={t('departments.actions.addSubDepartment')}
-            >
-              <Plus size={16} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleEdit(dept)}
-              className="mr-2"
-              title={t('common.edit')}
-            >
-              <Edit size={16} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDelete(dept)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              title={t('common.delete')}
-            >
-              <Trash2 size={16} />
-            </Button>
+          <TableCell className="py-3 text-right">
+            <div className="flex items-center justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setEditingDept(null);
+                  setParentId(dept.id);
+                  setIsModalOpen(true);
+                }}
+                className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+                title={t('departments.actions.addSubDepartment')}
+              >
+                <Plus size={16} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleEdit(dept)}
+                className="h-8 w-8 hover:bg-accent hover:text-accent-foreground"
+                title={t('common.edit')}
+              >
+                <Edit size={16} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDelete(dept)}
+                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                title={t('common.delete')}
+              >
+                <Trash2 size={16} />
+              </Button>
+            </div>
           </TableCell>
         </TableRow>
       );
 
-      const childrenRows =
+      const childrenRows: JSX.Element[] =
         hasChildren && isExpanded ? renderRows(dept.children!, depth + 1) : [];
       return [row, ...childrenRows];
     });
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">{t('departments.title')}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Spotlight
-            placeholder={t('departments.search.placeholder')}
-            value={searchTerm}
-            onChange={setSearchTerm}
-            className="w-[300px]"
-          />
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-2" />
+    <Card className="!shadow-none relative h-full bg-transparent overflow-hidden border-none">
+      <CardHeader className="space-y-0 flex flex-row justify-between items-center px-6 py-4">
+        <CardTitle>{t('departments.title')}</CardTitle>
+        <div className="flex items-center gap-3">
+          <div className="relative w-[280px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder={t('departments.search.placeholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button onClick={handleAdd} className="gap-2">
+            <Plus className="h-4 w-4" />
             {t('departments.actions.create')}
           </Button>
         </div>
-      </div>
+      </CardHeader>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('departments.title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[600px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('departments.headers.name')}</TableHead>
-                  <TableHead>{t('departments.headers.manager')}</TableHead>
-                  <TableHead>{t('departments.headers.memberCount')}</TableHead>
-                  <TableHead>{t('departments.headers.tokenLimit')}</TableHead>
-                  <TableHead>{t('departments.headers.storageLimit')}</TableHead>
-                  <TableHead>{t('departments.headers.usage')}</TableHead>
-                  <TableHead>{t('departments.headers.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleDepartments.length > 0 ? (
-                  renderRows(visibleDepartments)
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
-                      <TableEmpty />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[calc(100vh-200px)]">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                <TableHead className="font-semibold text-muted-foreground pl-6">
+                  {t('departments.headers.name')}
+                </TableHead>
+                <TableHead className="font-semibold text-muted-foreground">
+                  {t('departments.headers.manager')}
+                </TableHead>
+                <TableHead className="font-semibold text-muted-foreground">
+                  {t('departments.headers.memberCount')}
+                </TableHead>
+                <TableHead className="font-semibold text-muted-foreground">
+                  {t('departments.headers.tokenLimit')}
+                </TableHead>
+                <TableHead className="font-semibold text-muted-foreground">
+                  {t('departments.headers.storageLimit')}
+                </TableHead>
+                <TableHead className="font-semibold text-muted-foreground">
+                  {t('departments.headers.usage')}
+                </TableHead>
+                <TableHead className="font-semibold text-muted-foreground text-right pr-6">
+                  {t('departments.headers.actions')}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleDepartments.length > 0 ? (
+                renderRows(visibleDepartments)
+              ) : (
+                <TableEmpty columnsLength={7} />
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </CardContent>
 
       <DepartmentEditModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingDept(null);
+          setParentId(null);
+        }}
         department={editingDept}
         allDepartments={departments}
+        parentId={parentId}
         onSave={handleSave}
       />
 
@@ -374,9 +440,13 @@ export const DepartmentsView: React.FC = () => {
             <DialogTitle>{t('departments.delete.title')}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p>{t('departments.delete.confirm')}</p>
+            <p className="text-muted-foreground">
+              {t('departments.delete.confirm')}
+            </p>
             {deptToDelete && (
-              <p className="font-medium mt-2">{deptToDelete.name}</p>
+              <p className="font-medium mt-2 text-foreground">
+                {deptToDelete.name}
+              </p>
             )}
           </div>
           <DialogFooter>
@@ -392,6 +462,8 @@ export const DepartmentsView: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 };
+
+export default DepartmentsView;

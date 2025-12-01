@@ -1,7 +1,7 @@
 import { Box, Download, Palette, ToggleLeft } from 'lucide-react';
 import React from 'react';
 
-export const ExtensionView: React.FC = () => {
+const Extension: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Plugin Marketplace */}
@@ -117,3 +117,5 @@ export const ExtensionView: React.FC = () => {
     </div>
   );
 };
+
+export default Extension;

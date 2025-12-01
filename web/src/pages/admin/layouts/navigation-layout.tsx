@@ -5,8 +5,16 @@ import { NavLink, Outlet, useNavigate } from 'umi';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  LucideBell,
+  LucideBox,
+  LucideBriefcase,
+  LucideDatabase,
+  LucideFileText,
+  LucideList,
   LucideMonitor,
   LucideServerCrash,
+  LucideSettings,
+  LucideShield,
   LucideSquareUserRound,
   LucideUserCog,
   LucideUserStar,
@@ -48,6 +56,47 @@ const AdminNavigationLayout = () => {
         name: t('admin.departments'),
         icon: <LucideUserCog className="size-[1em]" />,
       },
+      {
+        path: Routes.AdminTenancy,
+        name: t('admin.tenancy'),
+        icon: <LucideBriefcase className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminAudit,
+        name: t('admin.audit'),
+        icon: <LucideFileText className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminMenus,
+        name: t('admin.menus'),
+        icon: <LucideList className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminNotification,
+        name: t('admin.notification'),
+        icon: <LucideBell className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminExtension,
+        name: t('admin.extension'),
+        icon: <LucideBox className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminOps,
+        name: t('admin.ops'),
+        icon: <LucideDatabase className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminSecurity,
+        name: t('admin.security'),
+        icon: <LucideShield className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminSettings,
+        name: t('admin.settings'),
+        icon: <LucideSettings className="size-[1em]" />,
+      },
+
       ...(IS_ENTERPRISE
         ? [
             {

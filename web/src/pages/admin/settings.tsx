@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import React, { useState } from 'react';
 
-export const SettingsView: React.FC = () => {
+const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     'general' | 'notifications' | 'domain'
   >('general');
@@ -378,3 +378,5 @@ export const SettingsView: React.FC = () => {
     </div>
   );
 };
+
+export default Settings;

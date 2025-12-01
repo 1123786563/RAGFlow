@@ -14,7 +14,7 @@ import React, { useState } from 'react';
 import { SecurityApi } from './api';
 import { Session } from './types/index';
 
-export const SecurityView: React.FC = () => {
+const Security: React.FC = () => {
   const MOCK_SESSIONS = SecurityApi.sessions();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{
@@ -242,3 +242,5 @@ export const SecurityView: React.FC = () => {
     </div>
   );
 };
+
+export default Security;

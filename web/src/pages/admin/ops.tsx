@@ -12,7 +12,7 @@ import {
 import React from 'react';
 import { SysExtApi } from './api';
 
-export const OpsView: React.FC = () => {
+const Ops: React.FC = () => {
   const HEALTH = SysExtApi.health();
 
   return (
@@ -207,3 +207,5 @@ export const OpsView: React.FC = () => {
     </div>
   );
 };
+
+export default Ops;

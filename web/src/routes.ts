@@ -57,6 +57,15 @@ export enum Routes {
   AdminRoles = `${Admin}/roles`,
   AdminMonitoring = `${Admin}/monitoring`,
   AdminDepartments = `${Admin}/departments`,
+  AdminTenancy = `${Admin}/tenancy`,
+  AdminAudit = `${Admin}/audit`,
+  AdminMenus = `${Admin}/menus`,
+  AdminNotification = `${Admin}/notification`,
+  AdminExtension = `${Admin}/extension`,
+  AdminOps = `${Admin}/ops`,
+  AdminSecurity = `${Admin}/security`,
+  AdminSettings = `${Admin}/settings`,
+  AdminTasks = `${Admin}/tasks`,
 }
 
 const routes = [
@@ -379,6 +388,42 @@ const routes = [
           {
             path: Routes.AdminDepartments,
             component: `@/pages/admin/departments`,
+          },
+          {
+            path: Routes.AdminTenancy,
+            component: `@/pages/admin/tenancy`,
+          },
+          {
+            path: Routes.AdminAudit,
+            component: `@/pages/admin/audit`,
+          },
+          {
+            path: Routes.AdminMenus,
+            component: `@/pages/admin/menus`,
+          },
+          {
+            path: Routes.AdminNotification,
+            component: `@/pages/admin/notification`,
+          },
+          {
+            path: Routes.AdminExtension,
+            component: `@/pages/admin/extension`,
+          },
+          {
+            path: Routes.AdminOps,
+            component: `@/pages/admin/ops`,
+          },
+          {
+            path: Routes.AdminSecurity,
+            component: `@/pages/admin/security`,
+          },
+          {
+            path: Routes.AdminSettings,
+            component: `@/pages/admin/settings`,
+          },
+          {
+            path: Routes.AdminTasks,
+            component: `@/pages/admin/tasks`,
           },
 
           ...(IS_ENTERPRISE

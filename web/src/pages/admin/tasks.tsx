@@ -9,12 +9,18 @@ import {
   RefreshCw,
   Trash2,
 } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { TaskApi } from './api/index';
 import { Task } from './types/index';
 
-export const TasksView: React.FC = () => {
-  const TASKS = TaskApi.list();
+const Tasks: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    // Fetch tasks data
+    const fetchedTasks = TaskApi.list();
+    setTasks(fetchedTasks);
+  }, []);
 
   const getStatusDisplay = (task: Task) => {
     if (task.progress === 1.0)
@@ -55,17 +61,23 @@ export const TasksView: React.FC = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-sm hover:bg-white transition-colors">
+          <button
+            type="button"
+            className="px-3 py-1.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-sm hover:bg-white transition-colors"
+          >
             暂停队列
           </button>
-          <button className="px-3 py-1.5 bg-brand-50 text-brand-600 border border-brand-100 rounded-lg text-sm hover:bg-brand-100 transition-colors flex items-center">
+          <button
+            type="button"
+            className="px-3 py-1.5 bg-brand-50 text-brand-600 border border-brand-100 rounded-lg text-sm hover:bg-brand-100 transition-colors flex items-center"
+          >
             <RefreshCw size={14} className="mr-1.5" /> 刷新
           </button>
         </div>
       </div>
 
       <div className="divide-y divide-slate-100">
-        {TASKS.map((task) => {
+        {tasks.map((task) => {
           const status = getStatusDisplay(task);
           const progressPercent = Math.round(task.progress * 100);
 
@@ -159,6 +171,7 @@ export const TasksView: React.FC = () => {
                 <div className="flex gap-2 mt-2">
                   {task.progress < 1 && task.progress > 0 ? (
                     <button
+                      type="button"
                       className="p-1.5 text-slate-400 hover:text-amber-500 rounded hover:bg-amber-50 transition-colors"
                       title="Pause"
                     >
@@ -166,6 +179,7 @@ export const TasksView: React.FC = () => {
                     </button>
                   ) : (
                     <button
+                      type="button"
                       className="p-1.5 text-slate-400 hover:text-brand-600 rounded hover:bg-brand-50 transition-colors"
                       title="Start/Resume"
                     >
@@ -173,6 +187,7 @@ export const TasksView: React.FC = () => {
                     </button>
                   )}
                   <button
+                    type="button"
                     className="p-1.5 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 transition-colors"
                     title="Delete Task"
                   >
@@ -187,3 +202,5 @@ export const TasksView: React.FC = () => {
     </div>
   );
 };
+
+export default Tasks;

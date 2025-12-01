@@ -1,7 +1,3 @@
-import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { DepartmentWithQuota } from '../types/index';
-
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,13 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { DepartmentWithQuota } from '../types';
 
 interface DepartmentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  department?: DepartmentWithQuota | null;
-  allDepartments: DepartmentWithQuota[]; // For parent selection
-  onSave: (dept: Partial<DepartmentWithQuota>, parentId: string | null) => void;
+  department: DepartmentWithQuota | null;
+  allDepartments: DepartmentWithQuota[];
+  parentId?: string | null;
+  onSave: (data: Partial<DepartmentWithQuota>) => void;
 }
 
 export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
@@ -33,29 +33,33 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
   onClose,
   department,
   allDepartments,
+  parentId: propParentId,
   onSave,
 }) => {
   const { t } = useTranslation();
-
   const [formData, setFormData] = useState<Partial<DepartmentWithQuota>>({
     name: '',
     manager: '',
-    location: '',
-    tokenLimit: 'Unlimited',
-    storageLimit: '100 GB',
-    usage: 0,
+    tokenLimit: '',
+    storageLimit: '',
   });
   const [parentId, setParentId] = useState<string | null>(null);
 
-  // Helper to flatten tree for dropdown
+  // Flatten departments for the parent selector
   const flattenDepartments = (
     nodes: DepartmentWithQuota[],
     depth = 0,
   ): { id: string; name: string; depth: number }[] => {
-    return nodes.flatMap((node) => [
-      { id: node.id, name: node.name, depth },
-      ...(node.children ? flattenDepartments(node.children, depth + 1) : []),
-    ]);
+    return nodes.reduce(
+      (acc, node) => {
+        acc.push({ id: node.id, name: node.name, depth });
+        if (node.children) {
+          acc.push(...flattenDepartments(node.children, depth + 1));
+        }
+        return acc;
+      },
+      [] as { id: string; name: string; depth: number }[],
+    );
   };
 
   const flatDepts = flattenDepartments(allDepartments);
@@ -63,45 +67,44 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       if (department) {
-        setFormData({ ...department });
-        // In a real app, we would calculate parentId from the tree structure
-        // For simplicity here, we assume if it's a root node, parentId is null
+        setFormData({
+          name: department.name,
+          manager: department.manager,
+          tokenLimit: department.tokenLimit,
+          storageLimit: department.storageLimit,
+        });
         setParentId(null);
       } else {
         setFormData({
           name: '',
           manager: '',
-          location: '',
-          tokenLimit: 'Unlimited',
-          storageLimit: '100 GB',
-          usage: 0,
+          tokenLimit: '',
+          storageLimit: '',
         });
-        setParentId(null);
+        setParentId(propParentId || null);
       }
     }
-  }, [isOpen, department]);
+  }, [isOpen, department, propParentId]);
 
-  const handleSubmit = () => {
-    onSave(formData, parentId);
+  const handleSave = () => {
+    onSave(formData);
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {department
               ? t('departments.edit.title')
-              : t('departments.create.title')}
+              : t('departments.new.title')}
           </DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-6 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              {t('departments.fields.name')}
+              {t('departments.form.name')}
             </Label>
             <Input
               id="name"
@@ -110,11 +113,45 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
                 setFormData({ ...formData, name: e.target.value })
               }
               className="col-span-3"
+              placeholder={t('departments.form.namePlaceholder')}
             />
           </div>
+
+          {!department && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="parent" className="text-right">
+                {t('departments.form.parent')}
+              </Label>
+              <Select
+                value={parentId || 'root'}
+                onValueChange={(val) =>
+                  setParentId(val === 'root' ? null : val)
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue
+                    placeholder={t('departments.form.selectParent')}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="root">
+                    {t('departments.form.rootNode')}
+                  </SelectItem>
+                  {flatDepts.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      <span style={{ paddingLeft: `${dept.depth * 10}px` }}>
+                        {dept.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="manager" className="text-right">
-              {t('departments.fields.manager')}
+              {t('departments.form.manager')}
             </Label>
             <Input
               id="manager"
@@ -123,55 +160,12 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
                 setFormData({ ...formData, manager: e.target.value })
               }
               className="col-span-3"
+              placeholder={t('departments.form.managerPlaceholder')}
             />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="location" className="text-right">
-              {t('departments.fields.location')}
-            </Label>
-            <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="parent" className="text-right">
-              {t('departments.fields.parent')}
-            </Label>
-            <Select
-              value={parentId || ''}
-              onValueChange={(value) => setParentId(value || null)}
-              disabled={!!department}
-            >
-              <SelectTrigger className="col-span-3">
-                <SelectValue
-                  placeholder={t('departments.fields.parentPlaceholder')}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">
-                  {t('departments.fields.rootLevel')}
-                </SelectItem>
-                {flatDepts.map((d) => (
-                  <SelectItem
-                    key={d.id}
-                    value={d.id}
-                    disabled={department?.id === d.id}
-                  >
-                    {'\u00A0'.repeat(d.depth * 2)}
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tokenLimit" className="text-right">
-              {t('departments.fields.tokenLimit')}
+              {t('departments.form.tokenLimit')}
             </Label>
             <Input
               id="tokenLimit"
@@ -180,11 +174,12 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
                 setFormData({ ...formData, tokenLimit: e.target.value })
               }
               className="col-span-3"
+              placeholder="e.g. 100000"
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="storageLimit" className="text-right">
-              {t('departments.fields.storageLimit')}
+              {t('departments.form.storageLimit')}
             </Label>
             <Input
               id="storageLimit"
@@ -193,6 +188,7 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
                 setFormData({ ...formData, storageLimit: e.target.value })
               }
               className="col-span-3"
+              placeholder="e.g. 10 GB"
             />
           </div>
         </div>
@@ -200,9 +196,7 @@ export const DepartmentEditModal: React.FC<DepartmentEditModalProps> = ({
           <Button variant="outline" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            {t('common.save')}
-          </Button>
+          <Button onClick={handleSave}>{t('common.confirm')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
