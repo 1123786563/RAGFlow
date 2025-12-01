@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { listRoles } from '@/services/admin-service';
 
-import EnterpriseFeature from '../components/enterprise-feature';
+import EnterpriseFeature from '../components/common/enterprise-feature';
 import { IS_ENTERPRISE } from '../utils';
 
 interface CreateUserFormData {
@@ -180,10 +180,23 @@ function useCreateUserForm(props?: {
   const id = useId();
 
   const schema = useMemo(() => {
+    // 密码复杂度正则表达式：至少包含8个字符，1个大写字母，1个小写字母，1个数字和1个特殊字符
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    
     return z
       .object({
-        email: z.string().email({ message: t('admin.invalidEmail') }),
-        password: z.string().min(6, { message: t('admin.passwordMinLength') }),
+        email: z
+          .string()
+          .email({ message: t('admin.invalidEmail') })
+          .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, {
+            message: t('admin.invalidEmailFormat'),
+          }),
+        password: z
+          .string()
+          .min(8, { message: t('admin.passwordMinLength8') })
+          .regex(passwordRegex, {
+            message: t('admin.passwordComplexity'),
+          }),
         confirmPassword: z
           .string()
           .min(1, { message: t('admin.confirmPasswordRequired') }),

@@ -365,12 +365,12 @@ const routes = [
     routes: [
       {
         path: '',
-        component: `@/pages/admin/login`,
+        component: `@/pages/admin/login/login`,
       },
       {
         path: `${Routes.AdminUserManagement}/:id`,
         wrappers: ['@/pages/admin/wrappers/authorized'],
-        component: `@/pages/admin/user-detail`,
+        component: `@/pages/admin/users/user-detail`,
       },
       {
         path: Routes.Admin,
@@ -379,66 +379,66 @@ const routes = [
         routes: [
           {
             path: Routes.AdminServices,
-            component: `@/pages/admin/service-status`,
+            component: `@/pages/admin/services/service-status`,
           },
           {
             path: Routes.AdminUserManagement,
-            component: `@/pages/admin/users`,
+            component: `@/pages/admin/users/users`,
           },
           {
             path: Routes.AdminDepartments,
-            component: `@/pages/admin/departments`,
+            component: `@/pages/admin/departments/departments`,
           },
           {
             path: Routes.AdminTenancy,
-            component: `@/pages/admin/tenancy`,
+            component: `@/pages/admin/tenancy/tenancy`,
           },
           {
             path: Routes.AdminAudit,
-            component: `@/pages/admin/audit`,
+            component: `@/pages/admin/audit/audit`,
           },
           {
             path: Routes.AdminMenus,
-            component: `@/pages/admin/menus`,
+            component: `@/pages/admin/menus/menus`,
           },
           {
             path: Routes.AdminNotification,
-            component: `@/pages/admin/notification`,
+            component: `@/pages/admin/notification/notification`,
           },
           {
             path: Routes.AdminExtension,
-            component: `@/pages/admin/extension`,
+            component: `@/pages/admin/extension/extension`,
           },
           {
             path: Routes.AdminOps,
-            component: `@/pages/admin/ops`,
+            component: `@/pages/admin/ops/ops`,
           },
           {
             path: Routes.AdminSecurity,
-            component: `@/pages/admin/security`,
+            component: `@/pages/admin/security/security`,
           },
           {
             path: Routes.AdminSettings,
-            component: `@/pages/admin/settings`,
+            component: `@/pages/admin/settings/settings`,
           },
           {
             path: Routes.AdminTasks,
-            component: `@/pages/admin/tasks`,
+            component: `@/pages/admin/tasks/tasks`,
           },
 
           ...(IS_ENTERPRISE
             ? [
                 {
                   path: Routes.AdminWhitelist,
-                  component: `@/pages/admin/whitelist`,
+                  component: `@/pages/admin/whitelist/whitelist`,
                 },
                 {
                   path: Routes.AdminRoles,
-                  component: `@/pages/admin/roles`,
+                  component: `@/pages/admin/roles/roles`,
                 },
                 {
                   path: Routes.AdminMonitoring,
-                  component: `@/pages/admin/monitoring`,
+                  component: `@/pages/admin/monitoring/monitoring`,
                 },
               ]
             : []),

@@ -77,6 +77,13 @@ const request: RequestMethod = extend({
   getResponse: true,
 });
 
+// 从Cookie中获取CSRF令牌
+const getCSRFToken = (): string => {
+  const cookie = document.cookie;
+  const match = cookie.match(/XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : '';
+};
+
 request.interceptors.request.use((url: string, options: any) => {
   const data = convertTheKeysOfTheObjectToSnake(options.data);
   const params = convertTheKeysOfTheObjectToSnake(options.params);
@@ -91,6 +98,8 @@ request.interceptors.request.use((url: string, options: any) => {
         ...(options.skipToken
           ? undefined
           : { [Authorization]: getAuthorization() }),
+        // 添加CSRF令牌到请求头
+        'X-XSRF-TOKEN': getCSRFToken(),
         ...options.headers,
       },
       interceptors: true,
